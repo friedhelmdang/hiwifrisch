@@ -1,0 +1,24 @@
+source /opt/intel/compilers_and_libraries_2017.0.098/linux/mkl/bin/mklvars.sh intel64
+
+R CMD SHLIB -lgsl -lgslcblas -lm bayesB_hung_presi.c -I/usr/local/include -L/usr/local/lib
+
+gcc -std=gnu99 -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -Wl,-z,relro -o bayesB_hung_presi.so bayesB_hung_presi.o -lgsl -lgslcblas -lm -Wl,--start-group /opt/intel/compilers_and_libraries_2017.0.098/linux/mkl/lib/intel64/libmkl_intel_lp64.a /opt/intel/compilers_and_libraries_2017.0.098/linux/mkl/lib/intel64/libmkl_gnu_thread.a /opt/intel/compilers_and_libraries_2017.0.098/linux/mkl/lib/intel64/libmkl_core.a -Wl,--end-group -ldl -lpthread -lm -lm -lgomp -L/usr/lib/R/lib -lR
+
+
+-----------
+
+
+new:
+R CMD SHLIB -lgsl -lgslcblas -lm bays_hung_neu_v2.c -I/usr/local/include -L/usr/local/lib
+gcc -std=gnu99 -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -Wl,-z,relro -o bays_hung_neu_v2.so bays_hung_neu_v2.o -lgsl -lgslcblas -lm -Wl,--start-group /opt/intel/compilers_and_libraries_2017.0.098/linux/mkl/lib/intel64/libmkl_intel_lp64.a /opt/intel/compilers_and_libraries_2017.0.098/linux/mkl/lib/intel64/libmkl_gnu_thread.a /opt/intel/compilers_and_libraries_2017.0.098/linux/mkl/lib/intel64/libmkl_core.a -Wl,--end-group -ldl -lpthread -lm -lm -lgomp -L/usr/lib/R/lib -lR
+
+
+gcc -std=gnu99 -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -Wl,-z,relro -o matrix_operation_test.so matrix_operation_test.o -lgsl -lgslcblas -lm -Wl,--start-group /opt/intel/compilers_and_libraries_2017.0.098/linux/mkl/lib/intel64/libmkl_intel_lp64.a /opt/intel/compilers_and_libraries_2017.0.098/linux/mkl/lib/intel64/libmkl_gnu_thread.a /opt/intel/compilers_and_libraries_2017.0.098/linux/mkl/lib/intel64/libmkl_core.a -Wl,--end-group -ldl -lpthread -lm -lm -lgomp -L/usr/lib/R/lib -lR
+
+GSL:
+-lgsl -lgslcblas -lm
+
+LD_LIBRARY_PATH=/usr/local/lib
+
+VM:
+source /opt/intel/mkl/bin/mklvars.sh intel64
