@@ -1,0 +1,3 @@
+PKG_CFLAGS= -Wall -pedantic -W -std=c99 -fopenmp -D="MT" -D="Lin" -D="use_mkl" -I$(MKLROOT)/include
+PKG_LIBS = -Wl,--start-group  $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_gnu_thread.a $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -ldl -lpthread -lm -lm -lgomp
+

@@ -1,0 +1,2 @@
+PKG_CFLAGS= -Wall -pedantic -W -Wno-unused-but-set-variable -Wno-unknown-pragmas -std=c99 -fopenmp -D="MT" -D="Lin" -D="use_gsl"
+PKG_LIBS =  -lm -lgomp -lgsl -lgslcblas

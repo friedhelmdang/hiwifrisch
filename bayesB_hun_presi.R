@@ -1,8 +1,8 @@
-setwd("/home/friedhelm/Schreibtisch/praktikum_c/workshop/")
+setwd("/home/friedhelm/Dokumente/Frisch/bayesb_nost/hiwifrisch/")
 
 #Loading *so file
-dyn.unload("bayesB_hung_nogsl.so")
-dyn.load("bayesB_hung_nogsl.so")
+dyn.unload("bayesb_nost.so")
+dyn.load("bayesb_nost.so")
 
 #Defining function
 baysB <-function(x, y, numit, propSegs, numMHCycles, chi_par) {
@@ -45,7 +45,7 @@ chi_par = 0.998;
 
 #####Data#####
 x <- matrix(scan("xvec.inp"), ncol=nmarkers, byrow=TRUE)
-y <- matrix(scan("yvec.inp"), byrow=TRUE)
+  y <- matrix(scan("yvec.inp"), byrow=TRUE)
 
 #####Execute BayesB####
 starttime<-Sys.time()

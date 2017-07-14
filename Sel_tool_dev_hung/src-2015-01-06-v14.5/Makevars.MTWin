@@ -1,0 +1,2 @@
+PKG_CFLAGS= -I"c:/Rtools/include" -Wall -pedantic -W -std=gnu99 -fopenmp -D="MT" -D="Win" -D="use_gsl"
+PKG_LIBS =  -lm -lgomp -lpthread -lgsl -lgslcblas

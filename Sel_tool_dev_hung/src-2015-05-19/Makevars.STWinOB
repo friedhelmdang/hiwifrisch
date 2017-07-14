@@ -1,0 +1,2 @@
+PKG_CFLAGS= -I"c:/Rtools/include" -std=c99 -D="ST" -D="Win" -D="use_openblas" 
+PKG_LIBS =  -lopenblasp -lpthread -lgomp -lgfortran -lm
