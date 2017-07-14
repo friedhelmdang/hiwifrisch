@@ -1,4 +1,4 @@
-source /opt/intel/compilers_and_libraries_2017.0.098/linux/mkl/bin/mklvars.sh intel64
+source /opt/intel/compilers_and_libraries_2017.4.196/linux/mkl/bin/mklvars.sh/mklvars.sh intel64
 
 R CMD SHLIB -lgsl -lgslcblas -lm bayesB_hung_presi.c -I/usr/local/include -L/usr/local/lib
 
