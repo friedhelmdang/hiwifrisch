@@ -14076,7 +14076,9 @@ double calc_meanval(double *x_temp, double *x, double *y, double *gtemp, double 
 
 
 void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
-			  double* numit,
+			  int* numit,
+			  double* numMHCycles,
+			  double* propSegs,
 			  char**  out_filename,
 			  int*    auxfiles, 
 			  int*    retval         )
@@ -14111,7 +14113,7 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 
 	//-----Decleration and Initialization-----
 	gs_UNSIGNED n, i, j, k;
-	double vare, gvar_new, LH0, LH1, LH2, mu, alpha, meanval, chi_parameter;
+	double vare, gvar_new, LH0, LH1, LH2, mu, alpha, meanval;
  	double g[gv->NoMar], gvar[gv->NoMar], gtemp[gv->NoMar], Ival[ gv->NoInd* gv->NoInd], 
 		ycorr[ gv->NoInd], e[ gv->NoInd], x_temp[ gv->NoInd];
 	double chi_parameter = 0.998;
@@ -14175,8 +14177,8 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 			}
 
 			//calclulating likelihood with gvar
-			LH1 = calc_lh_now(x_temp, gvar[j], Ival, ycorr,  gv->NoInd, 1);
-			LH0 = calc_lh_now(x_temp, gvar[j], Ival, ycorr, , 0);
+			LH1 = calc_lh_now(x_temp, gvar[j], Ival, ycorr, gv->NoInd, 1);
+			LH0 = calc_lh_now(x_temp, gvar[j], Ival, ycorr, gv->NoInd, 0);
 
 			for(i = 0; i < *numMHCycles; i++) {
 				//seed = seed + 1;
@@ -14258,14 +14260,16 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
   *retval = 0; return ;
 }
 
-void gs_esteff_bayesB_01_GV ( double* numit,
+void gs_esteff_bayesB_01_GV ( int* numit,
+			    double* numMHCycles
 			    char**  out_filename,
 			    int*    auxfiles, 
 			    int*    retval,
 			    char** set_name         )
 {
   gs_esteff_bayesB_01 ( gs_fdta(*set_name),
-		       hsq,
+		       numit,
+		       numMHCycles,
 		       out_filename,
 		       auxfiles, 
 		       retval         ) ;
