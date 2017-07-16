@@ -28,7 +28,7 @@ st.read.marker.data ( "ex-perez-p.mpo",  # Marker data of the prediction
 
 gs.esteff.rr ( method="rmlct", data.set="t" )               
 
-gs.esteff.bayesB (hsq=0.8, data.set="t")
+gs.esteff.bayesB (hsq=1000, data.set="t")
 
 
 c1 <- gs.predict.genotypes ( training.set   = "t",  # Predict genotypic values 
