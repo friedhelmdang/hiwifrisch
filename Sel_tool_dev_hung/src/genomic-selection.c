@@ -14138,14 +14138,14 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 		//seed = seed + n;
 
 		//calculating residuals
-		calc_residuals(e,  gv->NoInd, gv->NoMar, x, y, g, mu);
+		calc_residuals(e,  gv->NoInd, gv->NoMar, gv->Z, gv->y, g, mu);
 
 		//sample vare
 		vare = sample_var( gv->NoInd, e);
 		//seed = seed + 1;
 		
 		//sample mean
-		mu = sample_mean( gv->NoInd, gv->NoMar, vare, x,  y, g);
+		mu = sample_mean( gv->NoInd, gv->NoMar, vare, gv->Z,  gv->y, g);
 		//seed = seed + 1;
 
 		//sample gvar and g with Metropolis Hasting algorithm
@@ -14166,11 +14166,11 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 
 			for(i = 0; i <  gv->NoInd; i++) {
 				//init
-				ycorr[i] = y[i] - mu;
+				ycorr[i] = gv->y[i] - mu;
 				Ival[i* gv->NoInd + i] = vare;
-				x_temp[i] = x[i + j* gv->NoInd];
+				x_temp[i] = gv->Z[i + j* gv->NoInd];
 				for (k = 0; k < gv->NoMar; k++) {
-					ycorr[i] = ycorr[i] - x[i+k* gv->NoInd]*gtemp[k];	
+					ycorr[i] = ycorr[i] - gv->Z[i+k* gv->NoInd]*gtemp[k];	
 				}
 			}
 
@@ -14223,7 +14223,7 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 
 
 			if (gvar[j] > 0) {
-				meanval = calc_meanval(x_temp, x, y, gtemp, mu, vare, 
+				meanval = calc_meanval(x_temp, gv->Z, gv->y, gtemp, mu, vare, 
 							gvar[j],  gv->NoInd, gv->NoMar);
 				//seed = seed + 1;
 				g[j] = rnorm(meanval, sqrt((vare)/(scalar_own(x_temp,  gv->NoInd)+(vare)/gvar[j])));
