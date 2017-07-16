@@ -14077,7 +14077,7 @@ double calc_meanval(double *x_temp, double *x, double *y, double *gtemp, double 
 
 void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 			  int* numit,
-			  double* numMHCycles,
+			  int* numMHCycles,
 			  double* propSegs,
 			  char**  out_filename,
 			  int*    auxfiles, 
@@ -14264,7 +14264,7 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 
 
 void gs_esteff_bayesB_01_GV ( int* numit,
-			    double* numMHCycles,
+			    int* numMHCycles,
 			    double* propSegs,
 			    char**  out_filename,
 			    int*    auxfiles, 

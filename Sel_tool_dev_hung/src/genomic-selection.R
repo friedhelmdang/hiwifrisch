@@ -3948,7 +3948,7 @@ st.genetic.distances.fct <- function ( measure = "mrd", # "mrd" "rd" "euc"
 # BAYES                                                              2017-07
 ##############################################################################
 
-"gs.esteff.bayesB" <- function( numit ,
+"gs.esteff.bayesB" <- function( numit = 1000, numMHCycles = 30, propSegs = 1,
                                 out.filename = "eff.bayesB" ,
                                 auxfiles = FALSE,
                                 data.set ="default"              )
@@ -3958,7 +3958,9 @@ st.genetic.distances.fct <- function ( measure = "mrd", # "mrd" "rd" "euc"
   x.filename <- paste(st.output.dir,op,out.filename,sep="")
   retval <- 0;
   c <- .C( "gs_esteff_bayesB_01_GV",
-           as.double(numit),
+           as.numeric(numit),
+           as.numeric(numMHCycles),
+           as.double(propSegs),
            as.character(x.filename),
            as.integer(auxfiles),
            retval = as.integer(retval),
