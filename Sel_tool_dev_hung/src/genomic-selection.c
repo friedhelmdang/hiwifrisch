@@ -13925,7 +13925,7 @@ double sample_var(int nrecords, double *e) {
 		
 	}
 	
-	return vare/rchisq(*nrecords-2);
+	return vare/rchisq(nrecords-2);
 }
 
 void calc_residuals(double *e, int nrecords, int nmarkers, double *x, double *y, double *g, double mu) {
@@ -14115,9 +14115,11 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 	gs_UNSIGNED n, i, j, k;
 	double vare, gvar_new, LH0, LH1, LH2, mu, alpha, meanval;
  	double g[gv->NoMar], gvar[gv->NoMar], gtemp[gv->NoMar], Ival[ gv->NoInd* gv->NoInd], 
-		ycorr[ gv->NoInd], e[ gv->NoInd], x_temp[ gv->NoInd];
+		ycorr[ gv->NoInd], e[gv->NoInd], x_temp[ gv->NoInd];
 	double chi_parameter = 0.998;
 	//Init e, gvar, mu, g
+	double gS[*numit*gv->NoMar];
+	double gvarS[*numit*gv->NoMar];
 	vare = 0;
 	mu = 0.1;
 	
@@ -14260,8 +14262,10 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
   *retval = 0; return ;
 }
 
+
 void gs_esteff_bayesB_01_GV ( int* numit,
-			    double* numMHCycles
+			    double* numMHCycles,
+			    double* propSegs,
 			    char**  out_filename,
 			    int*    auxfiles, 
 			    int*    retval,
@@ -14270,6 +14274,7 @@ void gs_esteff_bayesB_01_GV ( int* numit,
   gs_esteff_bayesB_01 ( gs_fdta(*set_name),
 		       numit,
 		       numMHCycles,
+		       propSegs,
 		       out_filename,
 		       auxfiles, 
 		       retval         ) ;
