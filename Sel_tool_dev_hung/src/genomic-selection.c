@@ -13840,38 +13840,7 @@ int gs_check_allele_number ( gs_varset_type *gv )
 //# BAYES                                                              2017-07
 //##############################################################################
 
-
-void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
-			  double* hsq,
-			  char**  out_filename,
-			  int*    auxfiles, 
-			  int*    retval         )
-{
-  int Srv; int* Sretval = &Srv;
-  //Building design matrix
-  gs_build_Z_01 ( gv , nixp, neinp, Sretval );
-  if (-2 == *Sretval) { *retval = -2; return; }
-
- // Dimensions of Z: gv->NoInd  gv->NoMa
-/*
-  gs_UNSIGNED idx_Z;
-  for ( gs_UNSIGNED i = 0; i < gv->NoInd; i++){ 
-    for ( gs_UNSIGNED m = 0; m < gv->NoMa; m++) {
-      idx_Z   = i*gv->NoMar + m ;
-      Rprintf ("%5.1f",gv->Z[idx_Z] );
-    }
-    Rprintf("\n");
-  }
-
-  Rprintf("\n");
-
-  for ( gs_UNSIGNED i = 0; i < 5; i++  )
-      Rprintf ("%5.2f\n",gv->y[i] );
-*/
-//=== Designmatrix: gv->Z
-//=== Values: gv->y
-
-//BayesB Algorithm:
+//Required functions for bayesB
 
 /*----------------Creating Idendity Matrix----------------*/
 void create_idendity_matrix(int n, double * I){
@@ -13935,11 +13904,11 @@ double solve_det_new(double *a, int n) {
 
 
 /*----------------Sclarproduct with self--------------------------*/
-double scalar_own(double *x_temp, int *nrecords) {
+double scalar_own(double *x_temp, int nrecords) {
 	int i;
 	double scalar = 0;
 	
-	for (i = 0; i  < *nrecords; i++) {
+	for (i = 0; i  < nrecords; i++) {
 	 scalar = scalar + x_temp[i]*x_temp[i];
 	}
 	return scalar;
@@ -13947,11 +13916,11 @@ double scalar_own(double *x_temp, int *nrecords) {
 }
 
 /*----------------Sclarproduct with self--------------------------*/
-double sample_var(int *nrecords, double *e) {
+double sample_var(int nrecords, double *e) {
 	
 	int i;
 	double vare = 0;
-	for(i = 0; i < *nrecords; i++) {
+	for(i = 0; i < nrecords; i++) {
 		vare = vare + e[i]*e[i];
 		
 	}
@@ -13959,107 +13928,107 @@ double sample_var(int *nrecords, double *e) {
 	return vare/rchisq(*nrecords-2);
 }
 
-void calc_residuals(double *e, int *nrecords, int *nmarkers, double *x, double *y, double *g, double mu) {
+void calc_residuals(double *e, int nrecords, int nmarkers, double *x, double *y, double *g, double mu) {
 	
 	int i, j;
 	double sum = 0;
 	
-	for(i = 0; i < *nrecords; i++) {
+	for(i = 0; i < nrecords; i++) {
 		sum=0;
 		
-		for(j = 0; j < *nmarkers; j++) {
-			sum = sum + x[j**nrecords + i] * g[j];
+		for(j = 0; j < nmarkers; j++) {
+			sum = sum + x[j*nrecords + i] * g[j];
 			
 		}
 		e[i] = y[i] - sum - mu;
 	}
 }
 
-double sample_mean(int *nrecords, int *nmarkers, double vare, double *x, double * y, double *g) {
+double sample_mean(int nrecords, int nmarkers, double vare, double *x, double * y, double *g) {
 	
 	int i, k;	
 	double mean = 0;
 	double sumy = 0;
-	double tempx[*nmarkers];
+	double tempx[nmarkers];
 
-	for(i = 0; i < *nrecords; i++) {
+	for(i = 0; i < nrecords; i++) {
 		sumy = sumy + y[i];
 	}
 
-	for(k = 0; k < *nmarkers; k++) {
+	for(k = 0; k < nmarkers; k++) {
 		tempx[k] = 0;
-		for(i = 0; i < *nrecords; i++) {
-		tempx[k] = tempx[k] + x[i + k**nrecords];
+		for(i = 0; i < nrecords; i++) {
+		tempx[k] = tempx[k] + x[i + k*nrecords];
 		}
 	}
 	
-	for(i = 0; i < *nmarkers; i++) {
+	for(i = 0; i < nmarkers; i++) {
 		mean = mean + tempx[i]*g[i];
 	}
 	
-	return rnorm((sumy - mean)/ *nrecords, sqrt(vare/ *nrecords));
+	return rnorm((sumy - mean)/nrecords, sqrt(vare/nrecords));
 }
 
 
 
-double calc_lh_now(double *x_temp, double gvar, double *Ival, double *ycorr, int *nrecords, int a) {
+double calc_lh_now(double *x_temp, double gvar, double *Ival, double *ycorr, int nrecords, int a) {
 	
 	int i, j;
-	double V[*nrecords**nrecords], V_inv[*nrecords**nrecords];
-	double calc_temp[*nrecords], calc_temp2[*nrecords];	
+	double V[nrecords*nrecords], V_inv[nrecords*nrecords];
+	double calc_temp[nrecords], calc_temp2[nrecords];	
 	double calc_temp3 = 0;
 	double result;
 
 	if (a == 0) {
-		for (i = 0; i < *nrecords**nrecords; i++) {
+		for (i = 0; i < nrecords*nrecords; i++) {
 			V[i] = Ival[i];
 		}
 
 	}
 	
 	else {
-		for (i = 0; i < *nrecords; i++) {
+		for (i = 0; i < nrecords; i++) {
 			calc_temp[i] = x_temp[i] * gvar;
 		}
 
-		for (i = 0; i < *nrecords; i++) {
-			for (j = 0; j < *nrecords; j++) {
-				V[j+i**nrecords] = calc_temp[j]*x_temp[i];
+		for (i = 0; i < nrecords; i++) {
+			for (j = 0; j < nrecords; j++) {
+				V[j+i*nrecords] = calc_temp[j]*x_temp[i];
 			}	
 		}
 
-		for (i = 0; i < *nrecords**nrecords; i++) {
+		for (i = 0; i < nrecords*nrecords; i++) {
 			V[i] = V[i] + Ival[i];	
 		}
 	}
 
-	inverse(V, *nrecords, V_inv);
+	inverse(V, nrecords, V_inv);
 
-	for (i = 0; i < *nrecords; i++) {
+	for (i = 0; i < nrecords; i++) {
 		calc_temp2[i] = 0;
-		for (j = 0; j < *nrecords; j++) {
-			calc_temp2[i] = calc_temp2[i] + ycorr[j]*V_inv[j + i**nrecords];
+		for (j = 0; j < nrecords; j++) {
+			calc_temp2[i] = calc_temp2[i] + ycorr[j]*V_inv[j + i*nrecords];
 		}
 	}
 
-	for (i = 0; i < *nrecords; i++) {
+	for (i = 0; i < nrecords; i++) {
 		calc_temp3 = calc_temp3 + calc_temp2[i]*ycorr[i];
 		
 	}
 
-	result = (1/(2*pow(M_PI,0.5**nrecords)*sqrt(solve_det_new(V,*nrecords)))*exp(-0.5*calc_temp3));
+	result = (1/(2*pow(M_PI,0.5*nrecords)*sqrt(solve_det_new(V,nrecords)))*exp(-0.5*calc_temp3));
 	
 	return result;
 }	       
 
 
 double calc_meanval(double *x_temp, double *x, double *y, double *gtemp, double mu, 
-		double vare, double gvar, int *nrecords, int *nmarkers){
+		double vare, double gvar, int nrecords, int nmarkers){
 	
 	int i, j;
 	
 	double mult_temp1 = 0;	
-	double mult_temp2[*nmarkers];
+	double mult_temp2[nmarkers];
 	double mult_temp3 = 0;
 	double mult_temp4 = 0;
 	double mult_temp5 = 0;
@@ -14068,24 +14037,24 @@ double calc_meanval(double *x_temp, double *x, double *y, double *gtemp, double 
 
 	//-----first bracket-----
 	//init
-	for (i = 0; i < *nmarkers; i++) {
+	for (i = 0; i < nmarkers; i++) {
 		mult_temp2[i] = 0;
 	}	
 
-	for (i = 0; i < *nrecords; i++) {
+	for (i = 0; i < nrecords; i++) {
 		mult_temp1 = mult_temp1 + x_temp[i] * y[i];
 		mult_temp4 = mult_temp4 + x_temp[i];
 	}
 	
 	mult_temp4 = mult_temp4*mu;
 
-	for (i = 0; i < *nmarkers; i++) {
-		for (j = 0; j < *nrecords; j++) {
-			mult_temp2[i] = mult_temp2[i] + x_temp[j]*x[j + i**nrecords];
+	for (i = 0; i < nmarkers; i++) {
+		for (j = 0; j < nrecords; j++) {
+			mult_temp2[i] = mult_temp2[i] + x_temp[j]*x[j + i*nrecords];
 		}
 	}
 	
-	for (i = 0; i < *nmarkers; i++) {
+	for (i = 0; i < nmarkers; i++) {
 		mult_temp3 = mult_temp3 + mult_temp2[i]*gtemp[i];	
 	}
 
@@ -14093,7 +14062,7 @@ double calc_meanval(double *x_temp, double *x, double *y, double *gtemp, double 
 	bracket1 = mult_temp1 - mult_temp3 - mult_temp4;
 	
 	//-----second bracket-----
-	for (i = 0; i < *nrecords; i++) {
+	for (i = 0; i < nrecords; i++) {
 		mult_temp5 = mult_temp5 + x_temp[i]*x_temp[i];
 	}
 
@@ -14106,31 +14075,60 @@ double calc_meanval(double *x_temp, double *x, double *y, double *gtemp, double 
 
 
 
+void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
+			  double* numit,
+			  char**  out_filename,
+			  int*    auxfiles, 
+			  int*    retval         )
+{
+  int Srv; int* Sretval = &Srv;
+  //Building design matrix
+  gs_build_Z_01 ( gv , nixp, neinp, Sretval );
+  if (-2 == *Sretval) { *retval = -2; return; }
+
+ // Dimensions of Z: gv->NoInd  gv->NoMa
+/*
+  gs_UNSIGNED idx_Z;
+  for ( gs_UNSIGNED i = 0; i < gv->NoInd; i++){ 
+    for ( gs_UNSIGNED m = 0; m < gv->NoMa; m++) {
+      idx_Z   = i*gv->NoMar + m ;
+      Rprintf ("%5.1f",gv->Z[idx_Z] );
+    }
+    Rprintf("\n");
+  }
+
+  Rprintf("\n");
+
+  for ( gs_UNSIGNED i = 0; i < 5; i++  )
+      Rprintf ("%5.2f\n",gv->y[i] );
+*/
+//=== Designmatrix: gv->Z
+//=== Values: gv->y
+
+//BayesB Algorithm:
+
 /*------------------------BayesB--------------------------*/
 
-void baysB(int *nrecords, int *nmarkers, int *numit, int *numMHCycles, 
-	double *propSegs ,double *chi_parameter, double *x, double *y,	double *gS, double *gvarS) {
-	
 	//-----Decleration and Initialization-----
-	int n, i, j, k;
-	double vare, gvar_new, LH0, LH1, LH2, mu, alpha, meanval;
- 	double g[*nmarkers], gvar[*nmarkers], gtemp[*nmarkers],	Ival[*nrecords**nrecords], 
-		ycorr[*nrecords], e[*nrecords], x_temp[*nrecords];
-
+	gs_UNSIGNED n, i, j, k;
+	double vare, gvar_new, LH0, LH1, LH2, mu, alpha, meanval, chi_parameter;
+ 	double g[gv->NoMar], gvar[gv->NoMar], gtemp[gv->NoMar], Ival[ gv->NoInd* gv->NoInd], 
+		ycorr[ gv->NoInd], e[ gv->NoInd], x_temp[ gv->NoInd];
+	double chi_parameter = 0.998;
 	//Init e, gvar, mu, g
 	vare = 0;
 	mu = 0.1;
 	
-	for (i = 0; i < *nrecords**nrecords; i++) {
+	for (i = 0; i <  gv->NoInd* gv->NoInd; i++) {
 		Ival[i] = 0;
 	}
 
-	for (i = 0; i < *nmarkers; i++){
+	for (i = 0; i < gv->NoMar; i++){
 		gvar[i] = 0.1;
 		g[i] = 0.01;
 	}
 	
-	for (i = 0; i < *nrecords; i++) {
+	for (i = 0; i <  gv->NoInd; i++) {
 		e[i] = 0;
 	}
 	
@@ -14140,55 +14138,55 @@ void baysB(int *nrecords, int *nmarkers, int *numit, int *numMHCycles,
 		//seed = seed + n;
 
 		//calculating residuals
-		calc_residuals(e, nrecords, nmarkers, x, y, g, mu);
+		calc_residuals(e,  gv->NoInd, gv->NoMar, x, y, g, mu);
 
 		//sample vare
-		vare = sample_var(nrecords, e);
+		vare = sample_var( gv->NoInd, e);
 		//seed = seed + 1;
 		
 		//sample mean
-		mu = sample_mean(nrecords, nmarkers, vare, x,  y, g);
+		mu = sample_mean( gv->NoInd, gv->NoMar, vare, x,  y, g);
 		//seed = seed + 1;
 
 		//sample gvar and g with Metropolis Hasting algorithm
-		for(j = 0; j < *nmarkers; j++){
+		for(j = 0; j < gv->NoMar; j++){
 			
-			for(i = 0; i < *nmarkers; i++) {
+			for(i = 0; i < gv->NoMar; i++) {
 				gtemp[i] = g[i];
 			}
 			
 			gtemp[j] = 0;
-			for (i = 0; i < *nrecords**nrecords; i++) {
+			for (i = 0; i <  gv->NoInd* gv->NoInd; i++) {
 				Ival[i] = 0;
 			}
 
-			for (i = 0; i < *nrecords; i++) {
+			for (i = 0; i <  gv->NoInd; i++) {
 				ycorr[i] = 0;
 			}
 
-			for(i = 0; i < *nrecords; i++) {
+			for(i = 0; i <  gv->NoInd; i++) {
 				//init
 				ycorr[i] = y[i] - mu;
-				Ival[i**nrecords + i] = vare;
-				x_temp[i] = x[i + j**nrecords];
-				for (k = 0; k < *nmarkers; k++) {
-					ycorr[i] = ycorr[i] - x[i+k**nrecords]*gtemp[k];	
+				Ival[i* gv->NoInd + i] = vare;
+				x_temp[i] = x[i + j* gv->NoInd];
+				for (k = 0; k < gv->NoMar; k++) {
+					ycorr[i] = ycorr[i] - x[i+k* gv->NoInd]*gtemp[k];	
 				}
 			}
 
 			//calclulating likelihood with gvar
-			LH1 = calc_lh_now(x_temp, gvar[j], Ival, ycorr, nrecords, 1);
-			LH0 = calc_lh_now(x_temp, gvar[j], Ival, ycorr, nrecords, 0);
+			LH1 = calc_lh_now(x_temp, gvar[j], Ival, ycorr,  gv->NoInd, 1);
+			LH0 = calc_lh_now(x_temp, gvar[j], Ival, ycorr, , 0);
 
 			for(i = 0; i < *numMHCycles; i++) {
 				//seed = seed + 1;
 				if (runif(0, 1) < *propSegs) {
 
-					gvar_new = 0.002/rchisq(*chi_parameter);
+					gvar_new = 0.002/rchisq(chi_parameter);
 
 					//seed = seed + 1;
 
-					LH2 = calc_lh_now(x_temp, gvar_new, Ival, ycorr, nrecords, 2);
+					LH2 = calc_lh_now(x_temp, gvar_new, Ival, ycorr,  gv->NoInd, 2);
 
 					if (LH2/LH1 < 1) {
 						alpha = LH2/LH1;
@@ -14226,9 +14224,9 @@ void baysB(int *nrecords, int *nmarkers, int *numit, int *numMHCycles,
 
 			if (gvar[j] > 0) {
 				meanval = calc_meanval(x_temp, x, y, gtemp, mu, vare, 
-							gvar[j], nrecords, nmarkers);
+							gvar[j],  gv->NoInd, gv->NoMar);
 				//seed = seed + 1;
-				g[j] = rnorm(meanval, sqrt((vare)/(scalar_own(x_temp, nrecords)+(vare)/gvar[j])));
+				g[j] = rnorm(meanval, sqrt((vare)/(scalar_own(x_temp,  gv->NoInd)+(vare)/gvar[j])));
 
 			}
 
@@ -14244,10 +14242,6 @@ void baysB(int *nrecords, int *nmarkers, int *numit, int *numMHCycles,
 		
 	}
 	printf("\nEffects has been estimated!");
-}
-
-
-
 
   
   /* Allocate memory for the solution vector */
@@ -14264,7 +14258,7 @@ void baysB(int *nrecords, int *nmarkers, int *numit, int *numMHCycles,
   *retval = 0; return ;
 }
 
-void gs_esteff_bayesB_01_GV ( double* hsq,
+void gs_esteff_bayesB_01_GV ( double* numit,
 			    char**  out_filename,
 			    int*    auxfiles, 
 			    int*    retval,
