@@ -13937,7 +13937,7 @@ void calc_residuals(double *e, int nrecords, int nmarkers, double *x, double *y,
 		sum=0;
 		
 		for(j = 0; j < nmarkers; j++) {
-			sum = sum + x[j*nrecords + i] * g[j];
+			sum = sum + x[j + i*nmarkers] * g[j];
 			
 		}
 		e[i] = y[i] - sum - mu;
@@ -13958,7 +13958,7 @@ double sample_mean(int nrecords, int nmarkers, double vare, double *x, double * 
 	for(k = 0; k < nmarkers; k++) {
 		tempx[k] = 0;
 		for(i = 0; i < nrecords; i++) {
-		tempx[k] = tempx[k] + x[i + k*nrecords];
+			tempx[k] = tempx[k] + x[i + k*nrecords];
 		}
 	}
 	
@@ -14088,11 +14088,16 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
   gs_build_Z_01 ( gv , nixp, neinp, Sretval );
   if (-2 == *Sretval) { *retval = -2; return; }
 
+  gv->dimu = 1 + gv->NoMar;
+  gv->u =  realloc( gv->u, gv->dimu * sizeof(double) );
+  if ( NULL == gv->u ) ERR_M;
+
+  gv->u[0] = 1;
  // Dimensions of Z: gv->NoInd  gv->NoMa
-/*
+
   gs_UNSIGNED idx_Z;
   for ( gs_UNSIGNED i = 0; i < gv->NoInd; i++){ 
-    for ( gs_UNSIGNED m = 0; m < gv->NoMa; m++) {
+    for ( gs_UNSIGNED m = 0; m < gv->NoMar; m++) {
       idx_Z   = i*gv->NoMar + m ;
       Rprintf ("%5.1f",gv->Z[idx_Z] );
     }
@@ -14101,9 +14106,9 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 
   Rprintf("\n");
 
-  for ( gs_UNSIGNED i = 0; i < 5; i++  )
-      Rprintf ("%5.2f\n",gv->y[i] );
-*/
+//  for ( gs_UNSIGNED i = 0; i < 5; i++  )
+//      Rprintf ("%5.2f\n",gv->y[i] );
+
 //=== Designmatrix: gv->Z
 //=== Values: gv->y
 
@@ -14130,6 +14135,8 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 	for (i = 0; i < gv->NoMar; i++){
 		gvar[i] = 0.1;
 		g[i] = 0.01;
+		//Rprintf("%.2f", g[i]);
+		//Rprintf("\n");
 	}
 	
 	for (i = 0; i <  gv->NoInd; i++) {
@@ -14142,10 +14149,10 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 		//seed = seed + n;
 
 		//calculating residuals
-		calc_residuals(e,  gv->NoInd, gv->NoMar, gv->Z, gv->y, g, mu);
-
+		calc_residuals(e, gv->NoInd, gv->NoMar, gv->Z, gv->y, g, mu);
+		
 		//sample vare
-		vare = sample_var( gv->NoInd, e);
+		vare = sample_var(gv->NoInd, e);
 		//seed = seed + 1;
 		
 		//sample mean
@@ -14174,7 +14181,7 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 				Ival[i* gv->NoInd + i] = vare;
 				x_temp[i] = gv->Z[i + j* gv->NoInd];
 				for (k = 0; k < gv->NoMar; k++) {
-					ycorr[i] = ycorr[i] - gv->Z[i+k* gv->NoInd]*gtemp[k];	
+					ycorr[i] = ycorr[i] - gv->Z[i+k*gv->NoInd]*gtemp[k];	
 				}
 			}
 
@@ -14240,24 +14247,35 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 			}
 
 			gS[j**numit + n] = g[j];
-			gvarS[j**numit + n] = gvar[j];	
+			//Rprintf("\n");
+			//Rprintf("%5.1f", gS[j**numit + n]);
+			//printf("marker %d:\n", j);
+			gvarS[j**numit + n] = gvar[j];
+			//Rprintf("\n");
 		}
-			printf("\r Running BayesB... %.1f %%", (double)(n+1)/(*numit)*100);
+			//Rprintf("\r Running BayesB... %.1f %%", (double)(n+1)/(*numit)*100);
 		
 	}
-	printf("\nEffects has been estimated!");
+	double result_temp_mar;
+
+	for (j = 0; j < gv->NoMar; j++) {
+		result_temp_mar = 0;
+		for (i = 0; i < *numit; i++) {
+			result_temp_mar = result_temp_mar + gS[j**numit + i];
+		}
+		result_temp_mar = result_temp_mar/ *numit;
+		gv->u[1+j] = result_temp_mar;
+	}
+
 
   
   /* Allocate memory for the solution vector */
-  gv->dimu = 1 + gv->NoMar;
-  gv->u =  realloc( gv->u, gv->dimu * sizeof(double) );
-  if ( NULL == gv->u ) ERR_M;
 
-  gv->u[0] = 0.2;
-  for (gs_UNSIGNED m = 0; m < gv->NoMar; m++) 
-   {
-     gv->u[1+m] = 0.1 ;
-   }
+
+  //for (gs_UNSIGNED m = 0; m < gv->NoMar; m++) 
+   //{
+    // gv->u[1+m] = 0.1 ;
+   //}
   
   *retval = 0; return ;
 }

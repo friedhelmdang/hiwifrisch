@@ -4,9 +4,9 @@
 
 ## Set working, input, and output directories
 
-   st.input.dir  <- "input"
-   st.output.dir <- "output"
-   st.script.dir <- "src/"
+   st.input.dir  <- "/home/friedhelm/Dokumente/Frisch/bayesb_nost/hiwifrisch/Sel_tool_dev_hung/input"
+   st.output.dir <- "/home/friedhelm/Dokumente/Frisch/bayesb_nost/hiwifrisch/Sel_tool_dev_hung/output"
+   st.script.dir <- "/home/friedhelm/Dokumente/Frisch/bayesb_nost/hiwifrisch/Sel_tool_dev_hung/src/"
    source(paste(st.script.dir,"/SelectionTools.R",sep=""))
 
    st.set.info.level(1)
@@ -28,7 +28,7 @@ st.read.marker.data ( "ex-perez-p.mpo",  # Marker data of the prediction
 
 gs.esteff.rr ( method="rmlct", data.set="t" )               
 
-gs.esteff.bayesB (hsq=1000, data.set="t")
+gs.esteff.bayesB (numit=1000,numMHCycles = 1000, propSegs = 0.66, data.set="t")
 
 
 c1 <- gs.predict.genotypes ( training.set   = "t",  # Predict genotypic values 
