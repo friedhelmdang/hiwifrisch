@@ -13938,7 +13938,6 @@ void calc_residuals(double *e, int nrecords, int nmarkers, double *x, double *y,
 		
 		for(j = 0; j < nmarkers; j++) {
 			sum = sum + x[j + i*nmarkers] * g[j];
-			
 		}
 		e[i] = y[i] - sum - mu;
 	}
@@ -13958,7 +13957,7 @@ double sample_mean(int nrecords, int nmarkers, double vare, double *x, double * 
 	for(k = 0; k < nmarkers; k++) {
 		tempx[k] = 0;
 		for(i = 0; i < nrecords; i++) {
-			tempx[k] = tempx[k] + x[i + k*nrecords];
+			tempx[k] = tempx[k] + x[i*nmarkers +k];
 		}
 	}
 	
