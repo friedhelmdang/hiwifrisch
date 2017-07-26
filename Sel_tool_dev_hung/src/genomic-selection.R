@@ -3948,7 +3948,7 @@ st.genetic.distances.fct <- function ( measure = "mrd", # "mrd" "rd" "euc"
 # BAYES                                                              2017-07
 ##############################################################################
 
-"gs.esteff.bayesB" <- function( numit = 1000, numMHCycles = 30, propSegs = 1,
+"gs.esteff.bayesB" <- function( numit = 500, numMHCycles = 15, propSegs = 0.5,
                                 out.filename = "eff.bayesB" ,
                                 auxfiles = FALSE,
                                 data.set ="default"              )
@@ -3958,8 +3958,8 @@ st.genetic.distances.fct <- function ( measure = "mrd", # "mrd" "rd" "euc"
   x.filename <- paste(st.output.dir,op,out.filename,sep="")
   retval <- 0;
   c <- .C( "gs_esteff_bayesB_01_GV",
-           as.numeric(numit),
-           as.numeric(numMHCycles),
+           as.integer(numit),
+           as.integer(numMHCycles),
            as.double(propSegs),
            as.character(x.filename),
            as.integer(auxfiles),
@@ -3978,3 +3978,17 @@ st.genetic.distances.fct <- function ( measure = "mrd", # "mrd" "rd" "euc"
 ##############################################################################
 # ENDE: BAYES                                                         2017-07
 ##############################################################################
+
+#BLABLA
+
+"inverse.bayes"<-function(matrix) {
+    c <- .C("inverse",
+             a=as.double(matrix),
+             n=as.integer(ncol(matrix)),
+             inv=matrix(0,ncol=ncol(matrix),nrow=nrow(matrix))
+    )
+}
+
+"det.bayes"<-function(matrix, det){
+    c <-.C("print_det", a=as.numeric(matrix), n = as.integer(ncol(matrix)), det=as.numeric(det)) 
+}

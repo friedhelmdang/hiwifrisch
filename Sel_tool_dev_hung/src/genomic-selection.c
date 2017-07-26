@@ -13901,6 +13901,27 @@ double solve_det_new(double *a, int n) {
 	return det;
 }
 
+void print_det(double *a, int *n, double *det) {
+	int i;
+	*det = 1;
+	lapack_int info, col = *n;
+	lapack_int *ipiv = malloc(sizeof(lapack_int) **n);
+	double *a_copy = malloc(sizeof(double) **n**n);
+
+	memcpy(a_copy, a, sizeof(double)**n**n);
+
+	info = LAPACKE_dgetrf(LAPACK_COL_MAJOR, col, col, a_copy ,col , ipiv);
+	for(i = 0; i < *n; i++) {
+		*det = *det * a_copy[i**n + i];
+	}	
+
+	free(ipiv);
+	free(a_copy);
+	if(info != 0) printf("Error in fucntion solve_det_new \n");
+	printf("det: %.3f", *det); 
+	
+}
+
 
 
 /*----------------Sclarproduct with self--------------------------*/
@@ -13919,13 +13940,13 @@ double scalar_own(double *x_temp, int nrecords) {
 double sample_var(int nrecords, double *e) {
 	
 	int i;
-	double vare = 0;
+	double a = 0;
 	for(i = 0; i < nrecords; i++) {
-		vare = vare + e[i]*e[i];
+		a = a + e[i]*e[i];
 		
 	}
 	
-	return vare/rchisq(nrecords-2);
+	return a/rchisq(nrecords-2);
 }
 
 void calc_residuals(double *e, int nrecords, int nmarkers, double *x, double *y, double *g, double mu) {
@@ -14026,7 +14047,7 @@ double calc_meanval(double *x_temp, double *x, double *y, double *gtemp, double 
 	
 	int i, j;
 	
-	double mult_temp1 = 0;	
+	double mult_temp1 = 0;
 	double mult_temp2[nmarkers];
 	double mult_temp3 = 0;
 	double mult_temp4 = 0;
@@ -14049,7 +14070,7 @@ double calc_meanval(double *x_temp, double *x, double *y, double *gtemp, double 
 
 	for (i = 0; i < nmarkers; i++) {
 		for (j = 0; j < nrecords; j++) {
-			mult_temp2[i] = mult_temp2[i] + x_temp[j]*x[j + i*nrecords];
+			mult_temp2[i] = mult_temp2[i] + x_temp[j]*x[j*nmarkers + i];
 		}
 	}
 	
@@ -14093,7 +14114,7 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 
   gv->u[0] = 1;
  // Dimensions of Z: gv->NoInd  gv->NoMa
-
+/*
   gs_UNSIGNED idx_Z;
   for ( gs_UNSIGNED i = 0; i < gv->NoInd; i++){ 
     for ( gs_UNSIGNED m = 0; m < gv->NoMar; m++) {
@@ -14104,6 +14125,7 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
   }
 
   Rprintf("\n");
+*/
 
 //  for ( gs_UNSIGNED i = 0; i < 5; i++  )
 //      Rprintf ("%5.2f\n",gv->y[i] );
@@ -14114,18 +14136,23 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 //BayesB Algorithm:
 
 /*------------------------BayesB--------------------------*/
-
+	printf("NoInd: %d, NoMar: %d \n", gv->NoInd, gv->NoMar);
+	fflush(stdout);
 	//-----Decleration and Initialization-----
 	gs_UNSIGNED n, i, j, k;
 	double vare, gvar_new, LH0, LH1, LH2, mu, alpha, meanval;
  	double g[gv->NoMar], gvar[gv->NoMar], gtemp[gv->NoMar], Ival[ gv->NoInd* gv->NoInd], 
-		ycorr[ gv->NoInd], e[gv->NoInd], x_temp[ gv->NoInd];
+		ycorr[ gv->NoInd], e[gv->NoInd], x_temp[gv->NoInd];
 	double chi_parameter = 0.998;
 	//Init e, gvar, mu, g
 	double gS[*numit*gv->NoMar];
 	double gvarS[*numit*gv->NoMar];
-	vare = 0;
+	gs_UNSIGNED progress = 0;
+	//vare = 0;
 	mu = 0.1;
+	printf("numit: %d \n", *numit);
+	printf("cycles: %d \n", *numMHCycles);
+	printf("probsegs: %.2f\n", *propSegs);
 	
 	for (i = 0; i <  gv->NoInd* gv->NoInd; i++) {
 		Ival[i] = 0;
@@ -14137,18 +14164,36 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 		//Rprintf("%.2f", g[i]);
 		//Rprintf("\n");
 	}
+
+//	for(i = 0; i < gv->NoInd; i++) {
+//		Rprintf("g: %.5f \n", g[i]);
+//		fflush(stdout);
+//	}
 	
 	for (i = 0; i <  gv->NoInd; i++) {
 		e[i] = 0;
+		//printf("e 1: %d \n", e[i]);
 	}
-	
-
+	//printf("e 1 after loop: %d \n", e[0]);
+	//printf("numit: %d \n", *numit);
+	n = 0;
+	//printf("\rRunning BayesB... %.1f %%", 0);
 	//-----Beginning the iteration-----/
-	for(n = 0; n < *numit; n ++) {	
+	printf("\rRunning BayesB... %.3f %%", (double)progress/(*numit*gv->NoMar**numMHCycles)*100);
+	for(n = 0; n < *numit; n++) {	
 		//seed = seed + n;
-
+		
 		//calculating residuals
 		calc_residuals(e, gv->NoInd, gv->NoMar, gv->Z, gv->y, g, mu);
+		
+		if(n == (*numit-1)) {
+			for(i = 0; i < gv->NoInd; i++) {
+				Rprintf("g: %.5f \n", g[i]);
+				fflush(stdout);
+			}
+		}
+
+
 		
 		//sample vare
 		vare = sample_var(gv->NoInd, e);
@@ -14178,9 +14223,9 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 				//init
 				ycorr[i] = gv->y[i] - mu;
 				Ival[i* gv->NoInd + i] = vare;
-				x_temp[i] = gv->Z[i + j* gv->NoInd];
+				x_temp[i] = gv->Z[i* gv->NoMar + j];
 				for (k = 0; k < gv->NoMar; k++) {
-					ycorr[i] = ycorr[i] - gv->Z[i+k*gv->NoInd]*gtemp[k];	
+					ycorr[i] = ycorr[i] - gv->Z[i*gv->NoMar+k]*gtemp[k];	
 				}
 			}
 
@@ -14189,10 +14234,13 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 			LH0 = calc_lh_now(x_temp, gvar[j], Ival, ycorr, gv->NoInd, 0);
 
 			for(i = 0; i < *numMHCycles; i++) {
+				
 				//seed = seed + 1;
 				if (runif(0, 1) < *propSegs) {
-
+					//Meusw. 2001
 					gvar_new = 0.002/rchisq(chi_parameter);
+
+					//gvar_new = 0.002/rchisq(chi_parameter);
 
 					//seed = seed + 1;
 
@@ -14228,7 +14276,8 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 						LH1 = LH0;					
 					}
 				}
-
+				progress++;
+				printf("\rRunning BayesB... %.3f %%", (double)progress/(*numit*gv->NoMar**numMHCycles)*100);
 			}
 
 
@@ -14252,9 +14301,9 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
 			gvarS[j**numit + n] = gvar[j];
 			//Rprintf("\n");
 		}
-			//Rprintf("\r Running BayesB... %.1f %%", (double)(n+1)/(*numit)*100);
 		
 	}
+	printf("\n Complete! \n");
 	double result_temp_mar;
 
 	for (j = 0; j < gv->NoMar; j++) {
@@ -14278,6 +14327,7 @@ void gs_esteff_bayesB_01 ( gs_varset_type *gv ,
   
   *retval = 0; return ;
 }
+
 
 
 void gs_esteff_bayesB_01_GV ( int* numit,
